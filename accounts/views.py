@@ -1,19 +1,18 @@
-from rest_framework.views import APIView, Response, Request, status
 from .models import Account
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .serializers import AccountSerializer
+from .permissions import IsAccountOwner
+from rest_framework import generics
 
 
-class AccountView(APIView):
-    def get(self, request: Request) -> Response:
-        accounts = Account.objects.all()
-        serializer = AccountSerializer(accounts, many=True)
+class AccountView(generics.ListCreateAPIView):
+    queryset = Account.objects.all()
+    serializer_class = AccountSerializer
 
-        return Response(serializer.data, status.HTTP_200_OK)
 
-    def post(self, request: Request) -> Response:
-        serializer = AccountSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+class AccountDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Account.objects.all()
+    serializer_class = AccountSerializer
 
-        return Response(serializer.data, status.HTTP_201_CREATED)
-    
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAccountOwner]
